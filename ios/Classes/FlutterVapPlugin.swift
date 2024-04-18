@@ -77,7 +77,11 @@ class FlutterVapVew:NSObject,FlutterPlatformView, HWDMP4PlayDelegate {
         _view.frame = frame
         _registrar = registrar
         self.args = args as? [String:Any] ?? [:]
-        NotificationCenter.default.addObserver(self, selector: #selector(flutterWillBack), name: Notification.Name("FLUTTER_SCENE_WILL_APPEAR"), object: nil)
+        if let args = self.args, let path = args["path"] as? String {
+            ///如果有path则自动播放
+            self.playByPath(path)
+        }
+        // NotificationCenter.default.addObserver(self, selector: #selector(flutterWillBack), name: Notification.Name("FLUTTER_SCENE_WILL_APPEAR"), object: nil)
         //        NotificationCenter.default.addObserver(self, selector: #selector(flutterWillBack), name: Notification.Name("FLUTTER_SCENE_CHANNEL_NOTICE"), object: nil)
     }
     func channelNotice(note: Notification){
