@@ -47,10 +47,17 @@ class NativeVapView(
     init {
 
         uniqueId = creationParams?.get("id")?.toString()
-        Log.d("NativeVapView", "初始化NativeVapView：uniqueId=$uniqueId")
+        val path = creationParams?.get("path")?.toString()
+        Log.d("NativeVapView", "初始化NativeVapView：uniqueId=$uniqueId,path=$path")
 
         container.setBackgroundColor(Color.TRANSPARENT)
         vapView = createVapView()
+        if (path != null) {
+            tempPath.delete(0, tempPath.length)
+            tempPath.append(path)
+            vapView?.startPlay(File(path))
+            isRunning = true
+        }
     }
 
     private fun createVapView(): AnimView {

@@ -7,12 +7,14 @@ class VapViewForAndroid extends StatelessWidget {
   final int scaleType;
   final String? id;
   final bool isRepeat;
+  final String? path;
 
   const VapViewForAndroid({
     super.key,
     this.scaleType = ScaleType.fitCenter,
     this.id,
     this.isRepeat = true,
+    this.path,
   });
 
   @override
@@ -21,6 +23,9 @@ class VapViewForAndroid extends StatelessWidget {
     creationParams['scaleType'] = scaleType;
     if (id != null) {
       creationParams['id'] = id;
+    }
+    if (path != null) {
+      creationParams['path'] = path;
     }
     creationParams['isRepeat'] = isRepeat;
     return AndroidView(
