@@ -5,7 +5,7 @@ import 'dart:async';
 class QueueUtil {
   /// 用map key存储多个QueueUtil单例,目的是隔离多个类型队列任务互不干扰
   /// Use map key to store multiple QueueUtil singletons, the purpose is to isolate multiple types of queue tasks without interfering with each other
-  static Map<String, QueueUtil> _instance = Map<String, QueueUtil>();
+  static final Map<String, QueueUtil> _instance = <String, QueueUtil>{};
 
   static QueueUtil? get(String key) {
     if (_instance[key] == null) {
@@ -23,7 +23,11 @@ class QueueUtil {
   int _mId = 0;
   bool _isCancelQueue = false;
 
-  Future<_TaskInfo> addTask(Function doSomething) {
+  bool isFull() {
+    return _taskList.length >= 2;
+  }
+
+  addTask(Function doSomething) {
     _isCancelQueue = false;
     _mId++;
     _TaskInfo taskInfo = _TaskInfo(_mId, doSomething);
@@ -32,7 +36,7 @@ class QueueUtil {
     Completer<_TaskInfo> taskCompleter = Completer<_TaskInfo>();
 
     /// 创建当前任务stream
-    StreamController<_TaskInfo> streamController = new StreamController();
+    StreamController<_TaskInfo> streamController = StreamController();
     taskInfo.controller = streamController;
 
     /// 添加到任务队列
