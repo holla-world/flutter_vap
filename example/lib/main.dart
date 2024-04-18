@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vap/flutter_vap.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() {
   runApp(MyApp());
@@ -17,8 +19,16 @@ class _MyAppState extends State<MyApp> {
   List<String> downloadPathList = [];
   bool isDownload = false;
 
+  Future<void> initDownloadPath() async {
+    var appDocDir = await getApplicationDocumentsDirectory();
+    String rootPath = appDocDir.path;
+    downloadPathList = ["$rootPath/vap_demo1.mp4", "$rootPath/vap_demo2.mp4"];
+    print("downloadPathList:$downloadPathList");
+  }
+
   @override
   void initState() {
+    initDownloadPath();
     super.initState();
   }
 
@@ -81,8 +91,10 @@ class _MyAppState extends State<MyApp> {
               IgnorePointer(
                 // VapView可以通过外层包Container(),设置宽高来限制弹出视频的宽高
                 // VapView can set the width and height through the outer package Container() to limit the width and height of the pop-up video
-                child: VapView(
-                  isRepeat: false,
+                child: Center(
+                  child: VapView(
+                    isRepeat: false,
+                  ),
                 ),
               ),
             ],
@@ -92,12 +104,22 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  _download() async {}
+  _download() async {
+    await Dio().download(
+        "https://assets.voya.world/admin/20240319/65f972a6ca1557265f972a6ca158.mp4",
+        downloadPathList[0]);
+    await Dio().download(
+        "https://assets.voya.world/admin/20240319/65f972a6ca1557265f972a6ca158.mp4",
+        downloadPathList[1]);
+    setState(() {
+      isDownload = true;
+    });
+  }
 
   Future<Map<dynamic, dynamic>?> _playFile(String path) async {
     var res = await VapController.playPath(path);
     if (res!["status"] == "failure") {
-      // showToast(res["errorMsg"]);
+      print(res["errorMsg"]);
     }
     return res;
   }
@@ -105,7 +127,7 @@ class _MyAppState extends State<MyApp> {
   Future<Map<dynamic, dynamic>?> _playAsset(String asset) async {
     var res = await VapController.playAsset(asset);
     if (res!["status"] == "failure") {
-      // showToast(res["errorMsg"]);
+      print(res["errorMsg"]);
     }
     return res;
   }
