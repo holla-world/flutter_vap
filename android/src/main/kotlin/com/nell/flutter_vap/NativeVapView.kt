@@ -65,10 +65,9 @@ class NativeVapView(
             container.removeAllViews()
         }
         // 加载首帧图
-        addFirstFrameRender(path)
+//        addFirstFrameRender(path)
         vapView = createVapView()
         if (path != null) {
-            // 截取首帧图
             tempPath.delete(0, tempPath.length)
             tempPath.append(path)
             vapView?.startPlay(File(path))
@@ -186,14 +185,14 @@ class NativeVapView(
 
             override fun onVideoRender(frameIndex: Int, config: AnimConfig?) {
                 //                Log.d("NativeVapView", "onVideoRender")
-                if (frameIndex == 1) {
-                    // 隐藏首帧图
-                    try {
-                        container.removeViewAt(0)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
+//                if (frameIndex == 1) {
+//                    // 隐藏首帧图
+//                    try {
+//                        container.removeViewAt(0)
+//                    } catch (e: Exception) {
+//                        e.printStackTrace()
+//                    }
+//                }
             }
 
             override fun onVideoStart() {
