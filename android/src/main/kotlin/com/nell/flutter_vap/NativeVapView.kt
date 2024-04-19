@@ -2,11 +2,13 @@ package com.nell.flutter_vap
 
 import android.content.Context
 import android.graphics.Color
+import android.media.MediaMetadataRetriever
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.ImageView
 import com.tencent.qgame.animplayer.AnimConfig
 import com.tencent.qgame.animplayer.AnimView
 import com.tencent.qgame.animplayer.inter.IAnimListener
@@ -51,12 +53,54 @@ class NativeVapView(
         Log.d("NativeVapView", "初始化NativeVapView：uniqueId=$uniqueId,path=$path")
 
         container.setBackgroundColor(Color.TRANSPARENT)
+        createAndStart(path)
+    }
+
+    private fun createAndStart(path: String?) {
+        if (vapView != null) {
+            vapView?.stopPlay()
+            destroyVapView(vapView!!)
+        }
+        if (container.childCount > 0) {
+            container.removeAllViews()
+        }
+        // 加载首帧图
+//        addFirstFrameRender(path)
         vapView = createVapView()
         if (path != null) {
             tempPath.delete(0, tempPath.length)
             tempPath.append(path)
             vapView?.startPlay(File(path))
             isRunning = true
+        }
+    }
+
+    private fun addFirstFrameRender(path: String?) {
+        if (path == null) return
+        // 使用 MediaMetadataRetriever
+        val retriever = MediaMetadataRetriever()
+        try {
+            val imageView = ImageView(context)
+            val layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+            imageView.layoutParams = layoutParams
+            container.addView(imageView)
+            // 设置视频文件的路径 (这里假设是外部存储路径)
+            retriever.setDataSource(path)
+
+            // 获取第一帧图片
+            val firstFrame = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST)
+
+            // 将获取的第一帧显示在 ImageView 中
+            imageView.setImageBitmap(firstFrame)
+        } catch (e: IllegalArgumentException) {
+            e.printStackTrace()
+            // 处理错误，例如文件路径无效或文件损坏
+        } finally {
+            // 释放资源
+            retriever.release()
         }
     }
 
@@ -69,6 +113,7 @@ class NativeVapView(
         val vapView = AnimView(context)
 
         vapView.layoutParams = layoutParams
+
         container.addView(vapView)
 
 
@@ -109,11 +154,7 @@ class NativeVapView(
                             "NativeVapView",
                             "${uniqueId}失败重试,retryTime=${retryTime},tempPath=${tempPath}"
                         )
-                        vapView.stopPlay()
-                        destroyVapView(vapView)
-                        this@NativeVapView.vapView = createVapView()
-                        this@NativeVapView.vapView?.startPlay(File(tempPath.toString()))
-                        isRunning = true
+                        createAndStart(tempPath.toString())
                         retryTime = retryTime.inc()
                     }
                 }, 1000)
@@ -141,8 +182,17 @@ class NativeVapView(
 
             }
 
+
             override fun onVideoRender(frameIndex: Int, config: AnimConfig?) {
                 //                Log.d("NativeVapView", "onVideoRender")
+//                if (frameIndex == 1) {
+//                    // 隐藏首帧图
+//                    try {
+//                        container.removeViewAt(0)
+//                    } catch (e: Exception) {
+//                        e.printStackTrace()
+//                    }
+//                }
             }
 
             override fun onVideoStart() {
@@ -179,13 +229,7 @@ class NativeVapView(
                     if (uniqueId == id && !isRunning) {
                         mHandler.post {
                             Log.d("NativeVapView", "playPath,id=$id,uniqueId=$uniqueId")
-                            if (vapView == null) {
-                                vapView = createVapView()
-                            }
-                            tempPath.delete(0, tempPath.length)
-                            tempPath.append(it)
-                            vapView?.startPlay(File(it))
-                            isRunning = true
+                            createAndStart(it)
                         }
                     }
                 }
