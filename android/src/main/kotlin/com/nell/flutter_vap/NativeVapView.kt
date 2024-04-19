@@ -22,6 +22,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -93,6 +94,7 @@ class NativeVapView(
             VapManager.enqueueAnimation {
                 VapManager.add(uniqueId ?: "")
                 asyncStartPlay(File(path))
+                delay(400)
                 VapManager.remove(uniqueId ?: "")
                 VapManager.checkAndStartNextAnimation()
             }
