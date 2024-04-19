@@ -59,7 +59,7 @@ class NativeVapView(
 
         uniqueId = creationParams?.get("id")?.toString()
         val path = creationParams?.get("path")?.toString()
-        Log.d("NativeVapView", "初始化NativeVapView：uniqueId=$uniqueId,path=$path")
+//        Log.d("NativeVapView", "初始化NativeVapView：uniqueId=$uniqueId,path=$path")
 
         container.setBackgroundColor(Color.TRANSPARENT)
         createAndStart(path)
@@ -167,7 +167,7 @@ class NativeVapView(
                 //                        put("status", "complete")
                 //                    })
                 //                }
-                Log.d("NativeVapView", "onVideoComplete")
+//                Log.d("NativeVapView", "onVideoComplete")
                 isRunning = false
             }
 
@@ -224,7 +224,7 @@ class NativeVapView(
                     val id = call.argument<String>("id")
                     if (uniqueId == id && !isRunning) {
                         mHandler.post {
-                            Log.d("NativeVapView", "playPath,id=$id,uniqueId=$uniqueId")
+//                            Log.d("NativeVapView", "playPath,id=$id,uniqueId=$uniqueId")
                             createAndStart(it)
                         }
                     }
@@ -240,7 +240,7 @@ class NativeVapView(
             "stop" -> {
                 val id = call.argument<String>("id")
                 if (isRunning && id == uniqueId) {
-                    Log.d("NativeVapView", "停止播放uniqueId=$uniqueId")
+//                    Log.d("NativeVapView", "停止播放uniqueId=$uniqueId")
                     vapView?.stopPlay()
                     isRunning = false
                 }
