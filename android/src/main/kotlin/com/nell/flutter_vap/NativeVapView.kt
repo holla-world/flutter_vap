@@ -3,6 +3,7 @@ package com.nell.flutter_vap
 import android.content.Context
 import android.graphics.Color
 import android.media.MediaMetadataRetriever
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -89,11 +90,11 @@ class NativeVapView(
             tempPath.delete(0, tempPath.length)
             tempPath.append(path)
             vapView?.startPlay(File(path))
-            mScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-            mScope?.launch {
-                withContext(Dispatchers.IO) {
-                    asyncStartPlay(File(path))
-                }
+            VapManager.enqueueAnimation {
+                VapManager.add(uniqueId ?: "")
+                asyncStartPlay(File(path))
+                VapManager.remove(uniqueId ?: "")
+                VapManager.checkAndStartNextAnimation()
             }
             isRunning = true
         }
@@ -174,7 +175,6 @@ class NativeVapView(
             override fun onVideoDestroy() {
                 Log.d("NativeVapView", "onVideoDestroy,uniqueId=$uniqueId")
                 isRunning = false
-
             }
 
 
