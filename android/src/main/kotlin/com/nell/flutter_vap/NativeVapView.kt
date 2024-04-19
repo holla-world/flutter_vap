@@ -16,8 +16,15 @@ import com.tencent.qgame.animplayer.util.ScaleType
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.platform.PlatformView
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
+import kotlin.coroutines.suspendCoroutine
 
 
 @DelicateCoroutinesApi
@@ -45,6 +52,8 @@ class NativeVapView(
 
     private val mHandler = Handler(Looper.getMainLooper())
 
+    private var mScope: CoroutineScope? = null
+
 
     init {
 
@@ -54,6 +63,15 @@ class NativeVapView(
 
         container.setBackgroundColor(Color.TRANSPARENT)
         createAndStart(path)
+    }
+
+    private suspend fun asyncStartPlay(file: File): Boolean = suspendCoroutine {
+        try {
+            vapView?.startPlay(file)
+            it.resumeWith(Result.success(true))
+        } catch (e: Exception) {
+            it.resumeWith(Result.success(false))
+        }
     }
 
     private fun createAndStart(path: String?) {
@@ -71,36 +89,13 @@ class NativeVapView(
             tempPath.delete(0, tempPath.length)
             tempPath.append(path)
             vapView?.startPlay(File(path))
+            mScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+            mScope?.launch {
+                withContext(Dispatchers.IO) {
+                    asyncStartPlay(File(path))
+                }
+            }
             isRunning = true
-        }
-    }
-
-    private fun addFirstFrameRender(path: String?) {
-        if (path == null) return
-        // 使用 MediaMetadataRetriever
-        val retriever = MediaMetadataRetriever()
-        try {
-            val imageView = ImageView(context)
-            val layoutParams = FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
-            )
-            imageView.layoutParams = layoutParams
-            container.addView(imageView)
-            // 设置视频文件的路径 (这里假设是外部存储路径)
-            retriever.setDataSource(path)
-
-            // 获取第一帧图片
-            val firstFrame = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST)
-
-            // 将获取的第一帧显示在 ImageView 中
-            imageView.setImageBitmap(firstFrame)
-        } catch (e: IllegalArgumentException) {
-            e.printStackTrace()
-            // 处理错误，例如文件路径无效或文件损坏
-        } finally {
-            // 释放资源
-            retriever.release()
         }
     }
 
@@ -162,7 +157,7 @@ class NativeVapView(
             }
 
             override fun onVideoConfigReady(config: AnimConfig): Boolean {
-                Log.d("NativeVapView", "onVideoConfigReady")
+//                Log.d("NativeVapView", "onVideoConfigReady")
                 return true
             }
 
@@ -217,6 +212,7 @@ class NativeVapView(
 
     override fun dispose() {
         Log.d("NativeVapView", "vap通道销毁,uniqueId=$uniqueId")
+        mScope?.cancel()
         onDispose?.invoke()
         tempPath.delete(0, tempPath.length)
     }
